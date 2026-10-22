@@ -75,6 +75,17 @@ state = _State()
 
 def _http_error_message(exc) -> str:
     status = getattr(getattr(exc, "resp", None), "status", None)
+    if status == 401:
+        return (
+            "Google ontving geen geldig toegangstoken (401). Werk je in een Claude Code-"
+            "cloudomgeving, controleer dan of het netwerkgeheim van het type 'GCP access token' "
+            f"is ingesteld voor *.googleapis.com. Details: {exc}"
+        )
+    if status == 502 and "injection failed" in str(exc):
+        return (
+            "De proxy kon geen Google-token aanmaken met het netwerkgeheim. Controleer de "
+            f"sleutel en de scopes van het geheim. Details: {exc}"
+        )
     if status == 403:
         return (
             "Google weigert de toegang (403). Controleer of het service account als gebruiker "

@@ -48,18 +48,36 @@ Zie `klanten.voorbeeld.csv` voor een voorbeeld.
 
 Ga in Search Console per property naar *Instellingen > Gebruikers en rechten* en voeg het service account toe met het recht **Beperkt**. Met `list_clients` zie je daarna per klant of de toegang werkt.
 
-### 4. Toevoegen aan Claude Code
+### 4a. Claude Code op het web (claude.ai/code)
+
+De server staat al in `.mcp.json`, dus elke cloudsessie op deze repository start hem automatisch. De sleutel komt **niet** in de sessie: de proxy van de cloudomgeving voegt het toegangstoken toe.
+
+Open de cloudomgeving (menu in de titelbalk van de sessie, daarna het tandwiel bij de omgeving) en stel in:
+
+1. **Network secrets > Add secret**
+   * Secret type: **GCP access token (with Service Account Key)**
+   * Service account key: de inhoud van het JSON-sleutelbestand
+   * Scopes: `https://www.googleapis.com/auth/webmasters.readonly` en `https://www.googleapis.com/auth/spreadsheets.readonly`
+   * Allowed websites: `*.googleapis.com`
+2. **Environment variables**: voeg toe `GSC_CLIENTS_SHEET_ID=DIT_IS_HET_ID`
+3. **Network access**: `*.googleapis.com` moet bereikbaar zijn. Gebruik je het niveau Limited, zet het dan bij Allowed domains.
+
+Start daarna een **nieuwe** sessie en vraag: *"Toon alle klanten en of de GSC-toegang werkt."*
+
+Netwerkgeheimen vragen op Team en Enterprise een organisatiebeheerder. Zie [Cloud environments](https://code.claude.com/docs/en/cloud-environments#add-network-secrets).
+
+### 4b. Claude Code op je eigen computer
 
 Je hebt [uv](https://docs.astral.sh/uv/) nodig. Clone deze repository en voer daarna dit commando uit (pas de paden en het Sheet-ID aan):
 
 ```bash
-claude mcp add mpower-gsc --scope user \
+claude mcp add mpower-gsc-lokaal --scope user \
   -e GOOGLE_APPLICATION_CREDENTIALS=$HOME/.config/gsc/service_account.json \
   -e GSC_CLIENTS_SHEET_ID=DIT_IS_HET_ID \
   -- uv run --directory /pad/naar/mpower-nieuw-project mpower-gsc-mcp
 ```
 
-Start Claude Code, controleer met `/mcp` of `mpower-gsc` verbonden is, en vraag bijvoorbeeld: *"Toon alle klanten en of de GSC-toegang werkt."*
+Start Claude Code, controleer met `/mcp` of `mpower-gsc-lokaal` verbonden is (de andere naam voorkomt een conflict met de webversie uit `.mcp.json`), en vraag bijvoorbeeld: *"Toon alle klanten en of de GSC-toegang werkt."*
 
 ## Dagelijks gebruik: een klant toevoegen
 
@@ -74,6 +92,7 @@ De server leest de Sheet maximaal elke 5 minuten opnieuw. Wil je dat direct, vra
 |---|---|---|
 | `GOOGLE_APPLICATION_CREDENTIALS` | ja, of de volgende | Pad naar de JSON-sleutel |
 | `GSC_SERVICE_ACCOUNT_JSON` | alternatief | De inhoud van de JSON-sleutel als tekst (handig in omgevingen zonder bestanden) |
+| `GSC_AUTH_VIA_PROXY` | alternatief | `1`: geen sleutel in de sessie, de proxy voegt het token toe (standaard aan via `.mcp.json`) |
 | `GSC_CLIENTS_SHEET_ID` | ja, of de volgende | ID van de klanten-Sheet |
 | `GSC_CLIENTS_CSV` | alternatief | Pad naar een lokale CSV met dezelfde kolommen (`klanten.csv` staat in `.gitignore`) |
 | `GSC_CLIENTS_SHEET_RANGE` | nee | Standaard `Klanten!A:C` |

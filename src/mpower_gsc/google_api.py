@@ -30,7 +30,13 @@ class ConfigError(Exception):
 
 
 def load_credentials():
-    """Service-account-credentials uit een bestand of uit een JSON-string."""
+    """Service-account-credentials uit een bestand, een JSON-string of via de proxy.
+
+    Met GSC_AUTH_VIA_PROXY=1 stuurt de server verzoeken zonder sleutel. De proxy van
+    een Claude Code-cloudomgeving voegt dan het toegangstoken toe (netwerkgeheim van
+    het type "GCP access token"), zodat de sleutel nooit in de sessie staat.
+    """
+    from google.auth.credentials import AnonymousCredentials
     from google.oauth2 import service_account
 
     raw_json = os.getenv("GSC_SERVICE_ACCOUNT_JSON")
@@ -45,17 +51,27 @@ def load_credentials():
         if not os.path.exists(path):
             raise ConfigError(f"Het sleutelbestand '{path}' bestaat niet op deze machine.")
         return service_account.Credentials.from_service_account_file(path, scopes=SCOPES)
+    if os.getenv("GSC_AUTH_VIA_PROXY", "").lower() in {"1", "true", "ja"}:
+        return AnonymousCredentials()
     raise ConfigError(
-        "Geen credentials gevonden. Zet GOOGLE_APPLICATION_CREDENTIALS (pad naar de JSON-sleutel) "
-        "of GSC_SERVICE_ACCOUNT_JSON (de inhoud van de sleutel)."
+        "Geen credentials gevonden. Zet GOOGLE_APPLICATION_CREDENTIALS (pad naar de JSON-sleutel), "
+        "GSC_SERVICE_ACCOUNT_JSON (de inhoud van de sleutel) of GSC_AUTH_VIA_PROXY=1 "
+        "(sleutel als netwerkgeheim in een Claude Code-cloudomgeving)."
     )
 
 
 def build_services(credentials) -> tuple[Any, Any]:
+    import httplib2
+    from google.auth.credentials import AnonymousCredentials
     from googleapiclient.discovery import build
 
-    gsc = build("searchconsole", "v1", credentials=credentials, cache_discovery=False)
-    sheets = build("sheets", "v4", credentials=credentials, cache_discovery=False)
+    if isinstance(credentials, AnonymousCredentials):
+        # Zonder sleutel: gewone HTTP-verbinding, de proxy voegt het token toe.
+        auth = {"http": httplib2.Http(timeout=60)}
+    else:
+        auth = {"credentials": credentials}
+    gsc = build("searchconsole", "v1", cache_discovery=False, **auth)
+    sheets = build("sheets", "v4", cache_discovery=False, **auth)
     return gsc, sheets
 
 

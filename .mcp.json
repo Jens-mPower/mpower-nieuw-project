@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "mpower-gsc": {
+      "command": "uv",
+      "args": ["run", "--quiet", "--directory", "${CLAUDE_PROJECT_DIR:-.}", "mpower-gsc-mcp"],
+      "env": {
+        "GSC_AUTH_VIA_PROXY": "${GSC_AUTH_VIA_PROXY:-1}",
+        "GSC_CLIENTS_SHEET_ID": "${GSC_CLIENTS_SHEET_ID:-}"
+      }
+    }
+  }
+}

@@ -66,3 +66,23 @@ def test_load_credentials_missing_file_raises(monkeypatch):
     monkeypatch.setenv("GOOGLE_APPLICATION_CREDENTIALS", "/bestaat/niet.json")
     with pytest.raises(google_api.ConfigError, match="bestaat niet"):
         google_api.load_credentials()
+
+
+def test_load_credentials_via_proxy_sends_no_key(monkeypatch):
+    from google.auth.credentials import AnonymousCredentials
+
+    monkeypatch.delenv("GSC_SERVICE_ACCOUNT_JSON", raising=False)
+    monkeypatch.delenv("GOOGLE_APPLICATION_CREDENTIALS", raising=False)
+    monkeypatch.setenv("GSC_AUTH_VIA_PROXY", "1")
+    creds = google_api.load_credentials()
+    assert isinstance(creds, AnonymousCredentials)
+    headers = {}
+    creds.apply(headers)
+    assert "authorization" not in {k.lower() for k in headers}
+
+
+def test_explicit_key_wins_over_proxy(monkeypatch):
+    monkeypatch.setenv("GSC_AUTH_VIA_PROXY", "1")
+    monkeypatch.setenv("GOOGLE_APPLICATION_CREDENTIALS", "/bestaat/niet.json")
+    with pytest.raises(google_api.ConfigError, match="bestaat niet"):
+        google_api.load_credentials()
