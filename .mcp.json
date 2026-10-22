@@ -2,10 +2,21 @@
   "mcpServers": {
     "mpower-gsc": {
       "command": "uv",
-      "args": ["run", "--quiet", "--directory", "${CLAUDE_PROJECT_DIR:-.}", "mpower-gsc-mcp"],
+      "args": [
+        "run",
+        "--quiet",
+        "--directory",
+        "${CLAUDE_PROJECT_DIR:-.}",
+        "mpower-gsc"
+      ],
       "env": {
         "GSC_AUTH_VIA_PROXY": "${GSC_AUTH_VIA_PROXY:-1}",
-        "GSC_CLIENTS_SHEET_ID": "${GSC_CLIENTS_SHEET_ID:-}"
+        "GSC_READ_ONLY": "${GSC_READ_ONLY:-1}",
+        "GSC_SKIP_OAUTH": "${GSC_SKIP_OAUTH:-true}",
+        "GSC_CLIENTS_SHEET_ID": "${GSC_CLIENTS_SHEET_ID:-}",
+        "GSC_DATA_STATE": "${GSC_DATA_STATE:-all}",
+        "GSC_CREDENTIALS_PATH": "${GSC_CREDENTIALS_PATH:-}",
+        "GSC_CLIENTS_CSV": "${GSC_CLIENTS_CSV:-}"
       }
     }
   }

@@ -1,11 +1,23 @@
+# Python
 .venv/
 __pycache__/
-*.pyc
+*.py[oc]
 .pytest_cache/
+build/
 dist/
+*.egg-info/
 
-# Sleutels en lokale klantenlijsten nooit committen
+# Sleutels, tokens en lokale klantenlijsten nooit committen
+.env
+*.env
+service_account_credentials.json
 *service_account*.json
 *credentials*.json
+client_secret*.json
+token.json
 klanten.csv
-.env
+
+# Editor/OS
+.vscode/
+.idea/
+.DS_Store
